@@ -1,0 +1,31 @@
+name: Revisar vuelos
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency: revisar
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Revisar precios
+        env:
+          NTFY_TEMA: ${{ secrets.NTFY_TEMA }}
+        run: ./revisar.sh && tail -2 estado/historial.log
+      - name: Guardar estado
+        run: |
+          git config user.name "vuelos-bot"
+          git config user.email "vuelos-bot@users.noreply.github.com"
+          git add estado
+          git commit -qm "Revisión $(TZ=America/Monterrey date '+%Y-%m-%d %H:%M')" || exit 0
+          git push -q
+      - name: Apagar después de la última fecha
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(TZ=America/Monterrey date +%Y%m%d)" -gt 20270119 ]; then gh workflow disable revisar.yml -R ${{ github.repository }}; fi
