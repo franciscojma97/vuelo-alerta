@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      madrid_todo:
+        description: "Revisar todas las fechas de Madrid"
+        type: boolean
+        default: false
 permissions:
   contents: write
   actions: write
@@ -15,7 +20,8 @@ jobs:
       - name: Revisar precios
         env:
           NTFY_TEMA: ${{ secrets.NTFY_TEMA }}
-        run: ./revisar.sh && tail -2 estado/historial.log
+          MADRID_TODO: ${{ inputs.madrid_todo && '1' || '0' }}
+        run: ./revisar.sh && tail -3 estado/historial.log
       - name: Guardar estado
         run: |
           git config user.name "vuelos-bot"
@@ -28,4 +34,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "$(TZ=America/Monterrey date +%Y%m%d)" -gt 20270119 ]; then gh workflow disable revisar.yml -R ${{ github.repository }}; fi
+          if [ "$(TZ=America/Monterrey date +%Y%m%d)" -gt 20270317 ]; then gh workflow disable revisar.yml -R ${{ github.repository }}; fi

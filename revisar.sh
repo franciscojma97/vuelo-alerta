@@ -50,5 +50,40 @@ revisar_ruta() {
   fi
 }
 
+# Madrid tiene ~110 combinaciones de fechas: en cada corrida se revisa 1 de 8 grupos (todas cada ~2 horas).
+# madrid.tsv guarda el último precio de cada combinación: ida vuelta precio aerolínea
+revisar_madrid() {
+  local tabla="$DIR/madrid.tsv" nombre="MTY→Madrid" grupos=8
+  [[ $HOY -gt 20270317 ]] && return
+  local grupo=${GRUPO_MADRID:-$(( $(date +%s) / 900 % grupos ))}
+  touch "$tabla"
+  local antes=$(sort -k3,3n "$tabla" | head -1)
+  local n=0 k i v r
+  while read -r i v; do
+    k=$(( n++ % grupos )); [[ $MADRID_TODO == 1 || $k == $grupo ]] || continue
+    [[ ${i//-/} -lt $HOY ]] && { sed -i.bak "/^$i $v /d" "$tabla"; continue; }
+    r=$(directo_mas_barato MTY MAD $i $v); sleep 2
+    [[ -z "$r" ]] && { sleep 10; r=$(directo_mas_barato MTY MAD $i $v); sleep 2; }
+    sed -i.bak "/^$i $v /d" "$tabla"
+    [[ -n "$r" ]] && echo "$i $v $r" >> "$tabla"
+  done < <(python3 "$(dirname "$DIR")/fechas_madrid.py")
+  rm -f "$tabla.bak"
+  if [[ $MADRID_TODO == 1 ]]; then seq 0 $((grupos - 1)) >> "$DIR/madrid_grupos"; else echo $grupo >> "$DIR/madrid_grupos"; fi
+  local mejor=$(sort -k3,3n "$tabla" | head -1)
+  [[ -z "$mejor" ]] && { echo "$NOW  [$nombre] ERROR: no se encontró precio directo" >> "$LOG"; return; }
+  read -r i v p a <<< "$mejor"
+  local fechas="ida ${i:8:2}/${i:5:2}, vuelta ${v:8:2}/${v:5:2}, $(( ( $(date -d $v +%s) - $(date -d $i +%s) ) / 86400 )) días"
+  echo "$NOW  [$nombre] $p MXN ($a, $fechas)" >> "$LOG"
+  local pa=$(awk '{print $3}' <<< "$antes")
+  # No avisar hasta tener la primera vuelta completa de los 8 grupos
+  if [[ $(sort -u "$DIR/madrid_grupos" | wc -l) -ge $grupos && -n "$pa" && $p -lt $pa ]]; then
+    local msg="¡Bajó \$$((pa - p))! Ahora $p MXN (antes $pa) ida y vuelta DIRECTO $nombre. $a, $fechas"
+    echo "$NOW  ALERTA: $msg" >> "$LOG"
+    curl -s --max-time 30 -H "Title: Bajo el vuelo" -H "Tags: airplane" -H "Priority: high" \
+      -H "Click: $(url MTY MAD $i $v)" -d "$msg" "https://ntfy.sh/$NTFY_TEMA" > /dev/null
+  fi
+}
+
 revisar_ruta cabos "MTY→Los Cabos (sale 6:33)" MTY SJD "2026-12-10" "2026-12-15" 20261210 6:33
 revisar_ruta vsa "MTY→Villahermosa" MTY VSA "2027-01-19" "2027-01-29" 20270119
+revisar_madrid
