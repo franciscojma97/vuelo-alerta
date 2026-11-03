@@ -29,6 +29,8 @@ revisar_ruta() {
   local mejor="" mejor_aero="" mejor_ida="" mejor_vuelta="" r p a i v
   for i in "${idas[@]}"; do for v in "${vueltas[@]}"; do
     r=$(directo_mas_barato $o $d $i $v $hora); sleep 2
+    # A veces Google responde sin resultados; se reintenta una vez
+    [[ -z "$r" ]] && { sleep 10; r=$(directo_mas_barato $o $d $i $v $hora); }
     [[ -z "$r" ]] && continue
     p=${r%% *}; a=${r#* }
     if [[ -z "$mejor" || $p -lt $mejor ]]; then mejor=$p mejor_aero=$a mejor_ida=$i mejor_vuelta=$v; fi
