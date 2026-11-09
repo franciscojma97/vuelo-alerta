@@ -21,9 +21,9 @@ directo_mas_barato() { # origen destino ida vuelta [hora]
     | sort -n | head -1
 }
 
-# ruta: id  nombre  origen  destino  "idas"  "vueltas"  último día (AAAAMMDD)  [hora de salida]
+# ruta: id  nombre  origen  destino  "idas"  "vueltas"  último día (AAAAMMDD)  [hora de salida]  [avisar solo debajo de este precio]
 revisar_ruta() {
-  local id=$1 nombre=$2 o=$3 d=$4 limite=$7 hora=$8
+  local id=$1 nombre=$2 o=$3 d=$4 limite=$7 hora=$8 umbral=$9
   local -a idas=($5) vueltas=($6)
   [[ $HOY -gt $limite ]] && return
   local mejor="" mejor_aero="" mejor_ida="" mejor_vuelta="" r p a i v
@@ -42,7 +42,7 @@ revisar_ruta() {
   local anterior=$(cat "$DIR/ultimo_precio_$id" 2>/dev/null)
   echo "$NOW  [$nombre] $mejor MXN ($mejor_aero, $fechas)" >> "$LOG"
   echo "$mejor" > "$DIR/ultimo_precio_$id"
-  if [[ -n "$anterior" && $mejor -lt $anterior ]]; then
+  if [[ -n "$anterior" && $mejor -lt $anterior && ( -z "$umbral" || $mejor -lt $umbral ) ]]; then
     local msg="¡Bajó \$$((anterior - mejor))! Ahora $mejor MXN (antes $anterior) ida y vuelta DIRECTO $nombre. $mejor_aero, $fechas"
     echo "$NOW  ALERTA: $msg" >> "$LOG"
     curl -s --max-time 30 -H "Title: Bajo el vuelo" -H "Tags: airplane" -H "Priority: high" \
@@ -84,6 +84,6 @@ revisar_madrid() {
   fi
 }
 
-revisar_ruta cabos "MTY→Los Cabos (sale 6:33)" MTY SJD "2026-12-10" "2026-12-15" 20261210 6:33
+revisar_ruta cabos "MTY→Los Cabos (sale 6:33)" MTY SJD "2026-12-10" "2026-12-15" 20261210 6:33 4000
 revisar_ruta vsa "MTY→Villahermosa" MTY VSA "2027-01-19" "2027-01-29" 20270119
 revisar_madrid
