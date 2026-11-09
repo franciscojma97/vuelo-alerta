@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main  # si la corrida esperó en fila, usar el estado más reciente y no el de cuando se lanzó
       - name: Revisar precios
         env:
           NTFY_TEMA: ${{ secrets.NTFY_TEMA }}
@@ -28,7 +30,12 @@ jobs:
           git config user.email "vuelos-bot@users.noreply.github.com"
           git add estado
           git commit -qm "Revisión $(TZ=America/Monterrey date '+%Y-%m-%d %H:%M')" || exit 0
-          git push -q
+          for intento in 1 2 3 4 5; do
+            git pull -q --rebase && git push -q && exit 0
+            git rebase --abort 2>/dev/null || true
+            sleep $((intento * 5))
+          done
+          exit 1
       - name: Apagar después de la última fecha
         if: ${{ always() }}
         env:
