@@ -84,6 +84,5 @@ revisar_madrid() {
   fi
 }
 
-revisar_ruta cabos "MTY→Los Cabos (sale 6:33)" MTY SJD "2026-12-10" "2026-12-15" 20261210 6:33 4000
 revisar_ruta vsa "MTY→Villahermosa" MTY VSA "2027-01-19" "2027-01-29" 20270119
 revisar_madrid
