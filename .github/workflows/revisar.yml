@@ -41,4 +41,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "$(TZ=America/Monterrey date +%Y%m%d)" -gt 20270317 ]; then gh workflow disable revisar.yml -R ${{ github.repository }}; fi
+          if [ "$(TZ=America/Monterrey date +%Y%m%d)" -gt 20270119 ]; then gh workflow disable revisar.yml -R ${{ github.repository }}; fi
