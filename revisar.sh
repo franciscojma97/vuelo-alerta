@@ -85,4 +85,3 @@ revisar_madrid() {
 }
 
 revisar_ruta vsa "MTY→Villahermosa" MTY VSA "2027-01-19" "2027-01-29" 20270119
-revisar_madrid
