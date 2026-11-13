@@ -3185,3 +3185,6 @@
 2026-11-13 07:00  [MTY→Madrid] 13579 MXN (Aeromexico, ida 02/02, vuelta 18/02, 16 días)
 2026-11-13 07:15  [MTY→Villahermosa] ERROR: no se encontró precio directo
 2026-11-13 07:15  [MTY→Madrid] 13579 MXN (Aeromexico, ida 02/02, vuelta 18/02, 16 días)
+2026-11-13 07:30  [MTY→Villahermosa] 3455 MXN (Viva, ida 19/01, vuelta 29/01)
+2026-11-13 07:30  [MTY→Madrid] 10868 MXN (Iberia, ida 18/02, vuelta 09/03, 19 días)
+2026-11-13 07:30  ALERTA: ¡Bajó $2711! Ahora 10868 MXN (antes 13579) ida y vuelta DIRECTO MTY→Madrid. Iberia, ida 18/02, vuelta 09/03, 19 días
